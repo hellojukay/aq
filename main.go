@@ -30,8 +30,8 @@ func main() {
 }
 
 type Image struct {
-	Name      string    `json:"name"`
-	Tag       string    `json:"tag"`
+	Name      string    `json:"name" gorm:"index:idx"`
+	Tag       string    `json:"tag" gorm:"index:idx"`
 	ID        uint      `gorm:"primarykey" json:"-"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time
