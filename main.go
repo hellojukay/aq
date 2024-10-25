@@ -27,9 +27,11 @@ func main() {
 }
 
 type Image struct {
-	Name string `json:"name"`
-	Tag  string `json:"tag"`
-	gorm.Model
+	Name      string    `json:"name"`
+	Tag       string    `json:"tag"`
+	ID        uint      `gorm:"primarykey" json:"-"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time
 }
 
 func init() {
