@@ -55,7 +55,7 @@ func init() {
 	}
 	// init sqlite db
 	db, err := gorm.Open(sqlite.Open(filepath.Join(dir, "data.db")), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Error),
+		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		log.Fatal(err)
