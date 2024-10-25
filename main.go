@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -15,14 +17,14 @@ import (
 )
 
 var (
-	port int = 9090
+	port int    = 9090
+	dir  string = "./data"
 	DB   *gorm.DB
 )
 
 func main() {
 	mux := &http.ServeMux{}
-
-	// set up the endpoint with a "greeting" wildcard.
+	log.Printf("running on port %d, save data in directory %s", port, dir)
 	mux.HandleFunc("/image/{name}", handler)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
 }
@@ -37,11 +39,21 @@ type Image struct {
 
 func init() {
 	// prase flag
-	flag.IntVar(&port, "p", 9090, fmt.Sprintf("server port, default %d", port))
+	flag.IntVar(&port, "port", 9090, fmt.Sprintf("server port, default %d", port))
+	flag.StringVar(&dir, "dir", "./data", fmt.Sprintf("server data dir, default %s", dir))
 	flag.Parse()
 
+	// check dir exist, if not exist, create it.
+	if _, err := os.Stat(dir); err != nil {
+		if os.IsNotExist(err) {
+			// file does not exist
+			if mkerr := os.MkdirAll(dir, 0755); mkerr != nil {
+				log.Fatal(mkerr)
+			}
+		}
+	}
 	// init sqlite db
-	db, err := gorm.Open(sqlite.Open("data.db"), &gorm.Config{
+	db, err := gorm.Open(sqlite.Open(filepath.Join(dir, "data.db")), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Error),
 	})
 	if err != nil {
