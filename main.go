@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -67,8 +68,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		var name = r.PathValue("name")
 		log.Printf("get image tags: %s", name)
+		var limitStr = r.URL.Query().Get("limit")
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			limit = -1
+		}
 		var images []Image
-		if err := DB.Order("updated_at desc").Where("name = ?", name).Find(&images).Error; err != nil {
+		if err := DB.Limit(limit).Order("updated_at desc").Where("name = ?", name).Find(&images).Error; err != nil {
 			log.Println(err.Error())
 			w.WriteHeader(500)
 			w.Write([]byte("server database error"))
