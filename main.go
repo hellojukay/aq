@@ -11,6 +11,7 @@ import (
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var (
@@ -40,13 +41,16 @@ func init() {
 	flag.Parse()
 
 	// init sqlite db
-	db, err := gorm.Open(sqlite.Open("data.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("data.db"), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Error),
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 	DB = db
 	DB.AutoMigrate(&Image{})
 }
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		var name = r.PathValue("name")
@@ -70,14 +74,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	image := r.PathValue("name")
 	arr := strings.Split(image, ":")
-	var name = arr[0]
-	var tag = arr[1]
-	g := Image{
-		Name: name,
-		Tag:  tag,
+	if len(arr) != 2 {
+		w.WriteHeader(400)
+		w.Write([]byte("format error"))
+		return
 	}
 
-	if err := DB.Where("name = ? and tag = ?", name, tag).First(&g).Error; err == nil {
+	g := Image{
+		Name: arr[0],
+		Tag:  arr[1],
+	}
+
+	if err := DB.Where("name = ? and tag = ?", arr[0], arr[1]).First(&g).Error; err == nil {
 		g.UpdatedAt = time.Now()
 		DB.Save(&g)
 		return
@@ -87,5 +95,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("server error"))
 		return
 	}
-	log.Printf("successfully create image: %s:%s", name, tag)
+	log.Printf("successfully create image: %s", image)
 }
