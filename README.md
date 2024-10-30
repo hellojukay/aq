@@ -17,3 +17,6 @@ Query image version list:
 ```bash
 curl http://localhost:8081/image/{{name}
 ```
+
+# Download
+[https://github.com/hellojukay/aq/releases](https://github.com/hellojukay/aq/releases)
