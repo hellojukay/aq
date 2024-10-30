@@ -1,5 +1,5 @@
 # aq
-A key list sever,save a key and qury return a list.
+A key list sever, save a key and qury return a list.
 # Usage
 ```bash
 aq (main) $ ./aq -h
