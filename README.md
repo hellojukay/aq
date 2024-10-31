@@ -3,19 +3,20 @@ A key list sever, save a key and qury return a list.
 # Usage
 ```bash
 aq (main) $ ./aq -h
-Usage of ./aq:
   -dir string
-        server data dir, default ./data (default "./data")
+    	server data dir, default ./data (default "./data")
   -port int
-        server port, default 9090 (default 9090)
+    	server port, default 9090 (default 9090)
+  -prefix string
+    	server api prefix, default api (default "api")
 ```
 Post an pair of key and value to the server:
 ```bash
-curl -X POST http://localhost:8081/image/{name}:{tag}
+curl -X POST http://localhost:8081/api/{name}:{tag}
 ```
 Query key`s value list:
 ```bash
-curl http://localhost:8081/image/{{name}
+curl http://localhost:8081/api/{{name}
 ```
 
 # Download
