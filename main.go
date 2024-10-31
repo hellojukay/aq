@@ -27,7 +27,7 @@ var (
 
 func main() {
 	mux := &http.ServeMux{}
-	log.Printf("running on port %d, save data in directory %s", port, dir)
+	log.Printf("Running on port %d, save data in directory %s", port, dir)
 	mux.HandleFunc(fmt.Sprintf("/%s/{name}", prefix), handler)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
 }
@@ -56,7 +56,7 @@ func init() {
 		}
 		return false
 	})
-	log.Printf("server api prefix is %s", prefix)
+	log.Printf("server start up with api  prefix : %s", prefix)
 	// check dir exist, if not exist, create it.
 	if _, err := os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
@@ -67,7 +67,9 @@ func init() {
 		}
 	}
 	// init sqlite db
-	db, err := gorm.Open(sqlite.Open(filepath.Join(dir, "data.db")), &gorm.Config{
+	var dbpath = filepath.Join(dir, "data.db")
+	log.Printf("sqlite db path : %s", dbpath)
+	db, err := gorm.Open(sqlite.Open(dbpath), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
@@ -86,6 +88,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		postHandler(w, r)
 		return
 	default:
+		log.Printf("method not support: %s", r.Method)
 		w.WriteHeader(405)
 		return
 	}
@@ -96,7 +99,7 @@ func getHanlder(w http.ResponseWriter, r *http.Request) {
 	if strings.Contains(name, ":") {
 		name = strings.Split(name, ":")[0]
 	}
-	log.Printf("get %s tags list", name)
+	log.Printf("get key : %s value list", name)
 	var limitStr = r.URL.Query().Get("limit")
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil {
