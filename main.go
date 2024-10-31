@@ -28,7 +28,7 @@ var (
 func main() {
 	mux := &http.ServeMux{}
 	log.Printf("Running on port %d, save data in directory %s", port, dir)
-	mux.HandleFunc(fmt.Sprintf("/%s/{name}", prefix), handler)
+	mux.HandleFunc(fmt.Sprintf("/%s/{name...}", prefix), handler)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
 }
 
