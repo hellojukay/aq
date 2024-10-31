@@ -9,7 +9,7 @@ sub command_exsits {
     return $exit == 0;
 }
 
-$ENV{CGO_ENABLED} = 0;
+$ENV{CGO_ENABLED} = 1;
 if(command_exsits('gox')) {
     system("go install github.com/mitchellh/gox\@v1.0.1");
     print("[INFO] gox command found , now run gox build.\n");
