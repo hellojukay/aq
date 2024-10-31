@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -18,19 +19,20 @@ import (
 )
 
 var (
-	port int    = 9090
-	dir  string = "./data"
-	DB   *gorm.DB
+	port   int    = 9090
+	dir    string = "./data"
+	prefix string = "api"
+	DB     *gorm.DB
 )
 
 func main() {
 	mux := &http.ServeMux{}
 	log.Printf("running on port %d, save data in directory %s", port, dir)
-	mux.HandleFunc("/image/{name}", handler)
+	mux.HandleFunc(fmt.Sprintf("/%s/{name}", prefix), handler)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), mux)
 }
 
-type Image struct {
+type Key struct {
 	Name      string    `json:"name" gorm:"index:idx"`
 	Tag       string    `json:"tag" gorm:"index:idx"`
 	ID        uint      `gorm:"primarykey" json:"-"`
@@ -42,8 +44,19 @@ func init() {
 	// prase flag
 	flag.IntVar(&port, "port", 9090, fmt.Sprintf("server port, default %d", port))
 	flag.StringVar(&dir, "dir", "./data", fmt.Sprintf("server data dir, default %s", dir))
+	flag.StringVar(&prefix, "prefix", prefix, fmt.Sprintf("server api prefix, default %s", prefix))
 	flag.Parse()
 
+	prefix = strings.TrimFunc(prefix, func(r rune) bool {
+		if unicode.IsSpace(r) {
+			return true
+		}
+		if r == '/' {
+			return true
+		}
+		return false
+	})
+	log.Printf("server api prefix is %s", prefix)
 	// check dir exist, if not exist, create it.
 	if _, err := os.Stat(dir); err != nil {
 		if os.IsNotExist(err) {
@@ -61,44 +74,61 @@ func init() {
 		log.Fatal(err)
 	}
 	DB = db
-	DB.AutoMigrate(&Image{})
+	DB.AutoMigrate(&Key{})
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		var name = r.PathValue("name")
-		log.Printf("get image tags: %s", name)
-		var limitStr = r.URL.Query().Get("limit")
-		limit, err := strconv.Atoi(limitStr)
-		if err != nil {
-			limit = -1
-		}
-		var images []Image
-		if err := DB.Limit(limit).Order("updated_at desc").Where("name = ?", name).Find(&images).Error; err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(500)
-			w.Write([]byte("server database error"))
-			return
-		}
-		bytes, err := json.Marshal(images)
-		if err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(500)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(bytes)
+	switch r.Method {
+	case http.MethodGet:
+		getHanlder(w, r)
+		return
+	case http.MethodPost, http.MethodPut:
+		postHandler(w, r)
+		return
+	default:
+		w.WriteHeader(405)
 		return
 	}
-	image := r.PathValue("name")
-	arr := strings.Split(image, ":")
+}
+
+func getHanlder(w http.ResponseWriter, r *http.Request) {
+	var name = r.PathValue("name")
+	if strings.Contains(name, ":") {
+		name = strings.Split(name, ":")[0]
+	}
+	log.Printf("get %s tags list", name)
+	var limitStr = r.URL.Query().Get("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = -1
+	}
+	var keys []Key
+	if err := DB.Limit(limit).Order("updated_at desc").Where("name = ?", name).Find(&keys).Error; err != nil {
+		log.Println(err.Error())
+		w.WriteHeader(500)
+		w.Write([]byte("server database error"))
+		return
+	}
+	bytes, err := json.Marshal(keys)
+	if err != nil {
+		log.Println(err.Error())
+		w.WriteHeader(500)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(bytes)
+}
+
+func postHandler(w http.ResponseWriter, r *http.Request) {
+	key := r.PathValue("name")
+	arr := strings.Split(key, ":")
 	if len(arr) != 2 {
 		w.WriteHeader(400)
 		w.Write([]byte("format error"))
 		return
 	}
 
-	g := Image{
+	g := Key{
 		Name: arr[0],
 		Tag:  arr[1],
 	}
@@ -113,5 +143,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("server error"))
 		return
 	}
-	log.Printf("successfully create image: %s", image)
+	log.Printf("successfully create key: %s", key)
 }
