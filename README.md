@@ -1,5 +1,8 @@
 # aq
 A key list sever, save a key and qury return a list.
+```bash
+go install github.com/hellojukay/aq@latest
+```
 # Usage
 ```bash
 aq (main) $ ./aq -h
