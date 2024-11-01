@@ -15,11 +15,11 @@ aq (main) $ ./aq -h
 ```
 Post an pair of key and value to the server:
 ```bash
-curl -X POST http://localhost:8081/api/{name}:{tag}
+curl -X POST http://localhost:9090/api/{name}:{tag}
 ```
 Query key`s value list:
 ```bash
-curl http://localhost:8081/api/{{name}
+curl http://localhost:9090/api/{{name}
 ```
 
 # Download
