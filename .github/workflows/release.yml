@@ -15,9 +15,8 @@ jobs:
         go-version: '^1.19.1'
     - name: build
       run: |
-        go install github.com/mitchellh/gox@v1.0.1
         mkdir dist
-        perl .github/build.pl
+        go build -o dist/aq-linux-amd64 -ldflags '-linkmode "external" -extldflags "-static"' -tags osusergo,netgo,sqlite_omit_load_extension main.go
         ls -al dist/
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
