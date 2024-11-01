@@ -19,7 +19,7 @@ curl -X POST http://localhost:9090/api/{name}:{tag}
 ```
 Query key`s value list:
 ```bash
-curl http://localhost:9090/api/{{name}
+curl http://localhost:9090/api/{name}
 ```
 
 # Download
